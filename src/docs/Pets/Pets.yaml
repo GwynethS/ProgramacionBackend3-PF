@@ -48,25 +48,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: "#/components/requestBodies/createPetWithImage"
-              # type: object
-              # properties:
-              #   name:
-              #     type: string
-              #   specie:
-              #     type: string
-              #   birthDate:
-              #     type: string
-              #     format: date
-              #   adopted:
-              #     type: boolean
-              #     default: false
-              #   owner:
-              #     type: string
-              #     format: objectid
-              #     description: Owner's user ID
-              #   image:
-              #     type: string
-              #     format: binary
       responses:
         200:
           description: Pet created successfully
@@ -152,6 +133,14 @@ components:
         image:
           type: string
           description: URL to the pet's image
+      example:
+        _id: "6aaa84bad4dd297ffbe7bc1a"
+        name: "Max"
+        specie: "cat"
+        birthDate: "2009-03-21T11:42:05.693Z"
+        adopted: true
+        owner: "679d8c0f1f4448a0fc24d5b9"
+        image: "https://loremflickr.com/800/600?lock=123456"
 
   requestBodies:
     createPet:

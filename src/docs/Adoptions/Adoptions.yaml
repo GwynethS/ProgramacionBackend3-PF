@@ -1,0 +1,94 @@
+paths:
+  /api/adoptions:
+    get:
+      summary: Get all adoptions
+      description: Returns a list of all pet adoptions.
+      tags:
+        - Adoptions
+      responses:
+        200:
+          description: A list of adoptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Adoption"
+        500:
+          description: Internal server error
+
+  /api/adoptions/{aid}:
+    get:
+      summary: Retrieve a specific adoption
+      description: Returns details of a specific adoption by ID.
+      tags:
+        - Adoptions
+      parameters:
+        - name: aid
+          in: path
+          required: true
+          description: The adoption ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: Adoption details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Adoption"
+        404:
+          description: Adoption not found
+        500:
+          description: Internal server error
+
+  /api/adoptions/{uid}/{pid}:
+    post:
+      summary: Create a new adoption
+      description: Assigns a pet to an owner, marking the pet as adopted.
+      tags:
+        - Adoptions
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: User ID of the adopter
+          schema:
+            type: string
+        - name: pid
+          in: path
+          required: true
+          description: Pet ID being adopted
+          schema:
+            type: string
+      responses:
+        200:
+          description: Pet adopted successfully
+        404:
+          description: User or pet not found
+        400:
+          description: Pet is already adopted
+        500:
+          description: Internal server error
+
+components:
+  schemas:
+    Adoption:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectid
+          description: Auto-generated ID by MongoDB
+        owner:
+          type: string
+          format: objectid
+          description: User ID of the adopter
+        pet:
+          type: string
+          format: objectid
+          description: Pet ID being adopted
+      example:
+        _id: "679e6d6a17a0caa94b05b6a8"
+        owner: "679d8c0f1f4448a0fc24d5b9"
+        pet: "6aaa84bad4dd297ffbe7bc1a"
