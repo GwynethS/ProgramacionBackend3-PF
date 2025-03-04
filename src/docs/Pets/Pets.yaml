@@ -1,0 +1,227 @@
+paths:
+  /api/pets:
+    get:
+      summary: Get all pets
+      description: Returns a list of all pets in the system.
+      tags:
+        - Pets
+      responses:
+        200:
+          description: A list of pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+        500:
+          description: Internal server error
+
+    post:
+      summary: Create a new pet
+      description: Adds a new pet to the system.
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/createPet"
+      responses:
+        200:
+          description: Pet created successfully
+        400:
+          description: Invalid input data
+        500:
+          description: Internal server error
+
+  /api/pets/withimage:
+    post:
+      summary: Create a pet with an image
+      description: Adds a new pet and uploads an image.
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/requestBodies/createPetWithImage"
+              # type: object
+              # properties:
+              #   name:
+              #     type: string
+              #   specie:
+              #     type: string
+              #   birthDate:
+              #     type: string
+              #     format: date
+              #   adopted:
+              #     type: boolean
+              #     default: false
+              #   owner:
+              #     type: string
+              #     format: objectid
+              #     description: Owner's user ID
+              #   image:
+              #     type: string
+              #     format: binary
+      responses:
+        200:
+          description: Pet created successfully
+        400:
+          description: Invalid input data
+        500:
+          description: Internal server error
+
+  /api/pets/{pid}:
+    put:
+      summary: Update a pet
+      description: Updates an existing pet's details.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: The pet ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/updatePet"
+      responses:
+        200:
+          description: Pet updated successfully
+        404:
+          description: Pet not found
+        500:
+          description: Internal server error
+
+    delete:
+      summary: Delete a pet
+      description: Removes a pet from the system.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: The pet ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: Pet deleted successfully
+        404:
+          description: Pet not found
+        500:
+          description: Internal server error
+
+components:
+  schemas:
+    Pet:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectid
+          description: Auto-generated ID by MongoDB
+        name:
+          type: string
+          description: Pet's name
+        specie:
+          type: string
+          description: Pet's species
+        birthDate:
+          type: string
+          format: date
+          description: Pet's birth date
+        adopted:
+          type: boolean
+          default: false
+          description: Indicates if the pet has been adopted
+        owner:
+          type: string
+          format: objectid
+          description: Owner's user ID
+        image:
+          type: string
+          description: URL to the pet's image
+
+  requestBodies:
+    createPet:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Pet's name
+        specie:
+          type: string
+          description: Pet's species
+        birthDate:
+          type: string
+          format: date
+          description: Pet's birth date
+      example:
+        name: "Luna"
+        specie: "rabbit"
+        birthDate: "2003-10-15T11:42:05.693Z"
+
+    createPetWithImage:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Pet's name
+        specie:
+          type: string
+          description: Pet's species
+        birthDate:
+          type: string
+          format: date
+          description: Pet's birth date
+        image:
+          type: string
+          format: binary
+          description: URL to the pet's image
+      example:
+        name: "Luna"
+        specie: "rabbit"
+        birthDate: "2003-10-15T11:42:05.693Z"
+        image: "https://loremflickr.com/800/600?lock=123456"
+
+    updatePet:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Pet's name
+        specie:
+          type: string
+          description: Pet's species
+        birthDate:
+          type: string
+          format: date
+          description: Pet's birth date
+        adopted:
+          type: boolean
+          description: Indicates if the pet has been adopted
+        owner:
+          type: string
+          format: objectid
+          description: Owner's user ID
+        image:
+          type: string
+          description: URL to the pet's image
+      example:
+        name: "Max"
+        specie: "cat"
+        birthDate: "2009-03-21T11:42:05.693Z"
+        adopted: false
+        owner: "679d8c0f1f4448a0fc24d5b9"
+        image: "https://loremflickr.com/800/600?lock=123456"

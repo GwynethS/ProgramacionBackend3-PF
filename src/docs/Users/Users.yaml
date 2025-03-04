@@ -2,6 +2,7 @@ paths:
   /api/users:
     get:
       summary: Get all users from the database
+      description: Returns a list of all users in the system.
       tags:
         - Users
       responses:
