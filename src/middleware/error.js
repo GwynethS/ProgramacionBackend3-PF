@@ -15,6 +15,9 @@ const errorHandler = (error, req, res, next) => {
     case EErrors.INVALID_OPERATION:
       res.status(400).send(errorResponse);
       break;
+    case EErrors.NOT_FOUND:
+      res.status(404).send(errorResponse);
+      break;
     default:
       res.status(500).send(errorResponse);
       break;

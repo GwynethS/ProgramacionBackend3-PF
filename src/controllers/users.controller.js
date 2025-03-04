@@ -21,7 +21,7 @@ const getUser = async (req, res, next) => {
         name: "UserNotFoundError",
         cause: generateErrorInfo("user", { id: userId, notFound: true }),
         message: "User not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
     res.send({ status: "success", payload: user });
@@ -41,7 +41,7 @@ const updateUser = async (req, res, next) => {
         name: "UserNotFoundError",
         cause: generateErrorInfo("user", { id: userId, notFound: true }),
         message: "User not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 
@@ -61,7 +61,7 @@ const deleteUser = async (req, res, next) => {
         name: "UserNotFoundError",
         cause: generateErrorInfo("user", { id: userId, notFound: true }),
         message: "User not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 
