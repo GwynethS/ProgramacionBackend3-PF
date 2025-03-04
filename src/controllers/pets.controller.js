@@ -46,7 +46,7 @@ const updatePet = async (req, res, next) => {
         name: "PetNotFoundError",
         cause: generateErrorInfo("pet", { id: petId, notFound: true }),
         message: "Pet not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 
@@ -66,7 +66,7 @@ const deletePet = async (req, res, next) => {
         name: "PetNotFoundError",
         cause: generateErrorInfo("pet", { id: petId, notFound: true }),
         message: "Pet not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 

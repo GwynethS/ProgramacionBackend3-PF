@@ -28,7 +28,7 @@ const getAdoption = async (req, res, next) => {
           notFound: true,
         }),
         message: "Adoption not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
     res.send({ status: "success", payload: adoption });
@@ -46,7 +46,7 @@ const createAdoption = async (req, res, next) => {
         name: "UserNotFoundError",
         cause: generateErrorInfo("user", { id: uid, notFound: true }),
         message: "User not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 
@@ -56,7 +56,7 @@ const createAdoption = async (req, res, next) => {
         name: "PetNotFoundError",
         cause: generateErrorInfo("pet", { id: pid, notFound: true }),
         message: "Pet not found.",
-        code: EErrors.PATH_ERROR,
+        code: EErrors.NOT_FOUND,
       });
     }
 
