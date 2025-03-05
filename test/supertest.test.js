@@ -303,4 +303,90 @@ describe("Adoptme App Tests", () => {
       expect(_body.payload.email).to.eql("johndoe@example.com");
     });
   });
+
+  describe("Adoptions API Testing", () => {
+    let testUser = null;
+    let testPet = null;
+
+    before(async () => {
+      const userMock = {
+        first_name: "Test",
+        last_name: "User",
+        email: `test-user@mail.com`,
+        password: "test1234",
+      };
+
+      const userResponse = await requester.post("/api/users").send(userMock);
+      expect(userResponse.statusCode).to.equal(200);
+
+      testUser = userResponse._body.payload;
+
+      const petMock = {
+        name: "Lucky",
+        specie: "Dog",
+        birthDate: "2022-08-10",
+      };
+
+      const petResponse = await requester.post("/api/pets").send(petMock);
+      expect(petResponse.statusCode).to.equal(200);
+      testPet = petResponse._body.payload;
+    });
+
+    it("POST /api/adoptions/:uid/:pid should create an adoption", async () => {
+      const { statusCode, _body } = await requester.post(
+        `/api/adoptions/${testUser._id}/${testPet._id}`
+      );
+
+      expect(statusCode).to.equal(200);
+      expect(_body.status).to.equal("success");
+    });
+
+    it("POST /api/adoptions/:uid/:pid should not allow adopting the same pet twice", async () => {
+      const { statusCode } = await requester.post(
+        `/api/adoptions/${testUser._id}/${testPet._id}`
+      );
+
+      expect(statusCode).to.equal(400);
+    });
+
+    it("GET /api/adoptions should return a list of adoptions", async () => {
+      const { statusCode, _body } = await requester.get("/api/adoptions");
+
+      expect(statusCode).to.equal(200);
+      expect(_body.status).to.equal("success");
+      expect(_body.payload).to.be.an("array");
+    });
+
+    it("GET /api/adoptions/:aid should return a single adoption", async () => {
+      const { statusCode, _body } = await requester.get(
+        `/api/adoptions/679e6d6a17a0caa94b05b6a8`
+      );
+
+      expect(statusCode).to.equal(200);
+      expect(_body.status).to.equal("success");
+      expect(_body.payload)
+        .to.have.property("_id")
+        .that.equals("679e6d6a17a0caa94b05b6a8");
+    });
+
+    it("GET /api/adoptions/:aid should return 404 if adoption does not exist", async () => {
+      const fakeId = "000000000000000000000000";
+      const { statusCode, _body } = await requester.get(
+        `/api/adoptions/${fakeId}`
+      );
+
+      expect(statusCode).to.equal(404);
+      expect(_body.status).to.equal("error");
+      expect(_body.message).to.equal("Adoption not found.");
+    });
+
+    after(async () => {
+      if (testUser) {
+        await requester.delete(`/api/users/${testUser._id}`);
+      }
+      if (testPet) {
+        await requester.delete(`/api/pets/${testPet._id}`);
+      }
+    });
+  });
 });
