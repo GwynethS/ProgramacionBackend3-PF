@@ -1,6 +1,7 @@
 import express from "express";
-import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+
+import { mongoConnection } from "./connection/mongo.js";
 
 import swaggerJSDoc from "swagger-jsdoc"; 
 import swaggerUiExpress from "swagger-ui-express"; 
@@ -12,13 +13,12 @@ import sessionsRouter from "./routes/sessions.router.js";
 import mockingRouter from "./routes/mocks.router.js";
 import errorHandler from "./middleware/error.js";
 
+import "dotenv/config";
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-const connection = mongoose.connect(
-  `mongodb+srv://GwynethS:HYzs8Rc7Vt1cyFmN@coderback.2iv25.mongodb.net/?retryWrites=true&w=majority&appName=CoderBack`,
-  { dbName: "Adoption" }
-);
+mongoConnection();
 
 const swaggerOptions = {
   definition: {
