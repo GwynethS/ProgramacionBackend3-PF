@@ -1,151 +1,306 @@
-import chai from 'chai';
-import supertest from 'supertest';
+import chai from "chai";
+import supertest from "supertest";
 
 const expect = chai.expect;
-const requester = supertest('http://localhost:8080');
+const requester = supertest("http://localhost:8080");
 
-describe("Testing de la App Web Adoptame", () => {
-  describe("Testing de Mascotas", () => {
-      it("Endpoint POST /api/pets debe crear una mascota correctamente", async () => {
+describe("Adoptme App Tests", () => {
+  describe("Pets API Testing", () => {
+    it("POST /api/pets should successfully create a pet", async () => {
+      const petMock = {
+        name: "Firulais",
+        specie: "Dog",
+        birthDate: "2021-03-10",
+      };
 
-          const pichichoMock = {
-              name: "Firulais", 
-              specie: "Pichicho", 
-              birthDate: "2021-03-10"
-          };
+      const { statusCode, _body } = await requester
+        .post("/api/pets")
+        .send(petMock);
 
-          const { statusCode, ok, _body } = await requester.post("/api/pets").send(pichichoMock);
+      expect(statusCode).to.equal(200);
+      expect(_body.payload).to.have.property("_id");
+    });
 
-          console.log(statusCode); 
-          console.log(ok);
-          console.log(_body); 
+    it("When creating a pet with only basic data, it should have an 'adopted' property set to false", async () => {
+      const newPet = {
+        name: "Rex",
+        specie: "Dog",
+        birthDate: "2020-01-01",
+      };
 
-          expect(_body.payload).to.have.property("_id"); 
-      })
+      const { statusCode, _body } = await requester
+        .post("/api/pets")
+        .send(newPet);
 
-      it("Al crear una mascota sólo con los datos elementales. Se debe corroborar que la mascota creada cuente con una propiedad adopted : false", async () => {
-          const nuevaMascota = {
-              name: "Rex", 
-              specie: "Perro", 
-              birthDate: "2020-01-01"
-          }; 
+      expect(statusCode).to.equal(200);
+      expect(_body.payload).to.have.property("adopted").that.equals(false);
+    });
 
-          const {statusCode, _body} =  await requester.post("/api/pets").send(nuevaMascota); 
+    it("Trying to create a pet without a name should return a 400 status code", async () => {
+      const petWithoutName = {
+        specie: "Cat",
+        birthDate: "2024-12-24",
+      };
 
-          expect(statusCode).to.equal(200); 
-          expect(_body.payload).to.have.property("adopted").that.equals(false); 
-      })
+      const { statusCode } = await requester
+        .post("/api/pets")
+        .send(petWithoutName);
 
-      it("Si se desea crear una mascota sin el campo  nombre, el módulo debe responder con un status 400.", async () => {
-          const mascotaSinNombre = {
-              specie: "Gato", 
-              birthDate: "2024-12-24"
-          }; 
+      expect(statusCode).to.equal(400);
+    });
 
-          const { statusCode } = await requester.post("/api/pets").send(mascotaSinNombre); 
+    it("GET /api/pets should return a response containing 'status' and 'payload', and 'payload' should be an array", async () => {
+      const { statusCode, _body } = await requester.get("/api/pets");
 
-          expect(statusCode).to.equal(400);
+      expect(statusCode).to.equal(200);
+      expect(_body).to.have.property("status").that.equals("success");
+      expect(_body).to.have.property("payload").that.is.an("array");
+    });
 
-      })
+    it("PUT /api/pets/:pid should update a specific pet correctly", async () => {
+      const existingPetId = "6aaa84bad4dd297ffbe7bc1a";
 
-      it("Al obtener a las mascotas con el método GET, la respuesta debe tener los campos status y payload. Además, payload debe ser de tipo arreglo.", async () => {
-          const { statusCode, _body }  = await requester.get("/api/pets"); 
+      const updatedData = {
+        name: "Mili",
+        specie: "Cat",
+      };
 
-          expect(statusCode).to.equal(200); 
-          expect(_body).to.have.property("status").that.equals("success"); 
-          expect(_body).to.have.property("payload").that.is.an("array"); 
-      })
+      const { statusCode } = await requester
+        .put(`/api/pets/${existingPetId}`)
+        .send(updatedData);
 
-      it("El método PUT debe poder actualizar correctamente a una mascota determinada ", async () => {
-          const idMascotaExistente = "6aaa84bad4dd297ffbe7bc1a"; 
+      expect(statusCode).to.equal(200);
+    });
 
-          const datosActualizados = {
-              name: "Mili", 
-              specie: "cat"
-          }
+    it("DELETE should remove the last added pet", async () => {
+      const newPet = {
+        name: "Pet to delete",
+        specie: "Dog",
+        birthDate: "2023-02-20",
+      };
 
-          const { statusCode} = await requester.put(`/api/pets/${idMascotaExistente}`).send(datosActualizados); 
+      const {
+        _body: {
+          payload: { _id },
+        },
+      } = await requester.post("/api/pets").send(newPet);
 
-          expect(statusCode).to.equal(200); 
-      })
+      const { statusCode } = await requester.delete(`/api/pets/${_id}`);
 
-      it("El método DELETE debe poder borrar la última mascota agregada, ésto se puede alcanzar agregando a la mascota con un POST, tomando el id, borrando la mascota  con el DELETE, y luego corroborar si la mascota existe con un GET", async () => {
-          const nuevaMascota = {
-              name: "Mascota a borrar",
-              specie: "Perro", 
-              birthDate: "2023-02-20"
-          }
+      expect(statusCode).to.equal(200);
+    });
 
-          const {_body: {payload: {  _id } } } = await requester.post("/api/pets").send(nuevaMascota);
+    it("POST /api/pets/withimage should create a pet with an image", async () => {
+      const pet = {
+        name: "Bingo",
+        specie: "Dog",
+        birthDate: "2024-10-01",
+      };
 
-          const {statusCode} =  await requester.delete(`/api/pets/${_id}`);
+      const result = await requester
+        .post("/api/pets/withimage")
+        .field("name", pet.name)
+        .field("specie", pet.specie)
+        .field("birthDate", pet.birthDate)
+        .attach("image", "./test/ambar-perrito.jpg");
 
-          expect(statusCode).to.equal(200); 
-      })
-  })
+      expect(result.status).to.equal(200);
+      expect(result._body.payload).to.have.property("_id");
+      expect(result._body.payload.image).to.exist;
+    });
+  });
 
-  describe("Test Avanzado", () => {
-      let cookie; 
+  describe("Users API Testing", () => {
+    it("GET /api/users should return a list of users", async () => {
+      const { statusCode, _body } = await requester.get("/api/users");
 
-      it("Debe registrar correctamente a un usuario", async () => {
-          const mockUsuario = {
-              first_name: "Pepe", 
-              last_name: "Argento", 
-              email: "pepeee@zapateriagarmendia.com",
-              password: "1234"
-          }
+      expect(statusCode).to.equal(200);
+      expect(_body).to.have.property("status").that.equals("success");
+      expect(_body).to.have.property("payload").that.is.an("array");
+    });
 
-          const {_body} = await requester.post("/api/sessions/register").send(mockUsuario); 
+    it("GET /api/users/:uid should return a specific user if found", async () => {
+      const existingUserId = "679d8c0f1f4448a0fc24d5b9";
 
-          expect(_body.payload).to.be.ok; 
-      })
+      const { statusCode, _body } = await requester.get(
+        `/api/users/${existingUserId}`
+      );
 
-      it("Debe loguear correctamente al usuario y recuperar la cookie", async () => {
-          const mockUsuario = {
-              email: "pepe@zapateriagarmendia.com",
-              password: "1234"
-          }
+      expect(statusCode).to.equal(200);
+      expect(_body).to.have.property("status").that.equals("success");
+      expect(_body.payload).to.have.property("_id").that.equals(existingUserId);
+    });
 
-          const resultado = await requester.post("/api/sessions/login").send(mockUsuario); 
+    it("GET /api/users/:uid should return a 404 error if user is not found", async () => {
+      const nonExistentUserId = "000000000000000000000000";
 
-          const cookieResultado = resultado.headers["set-cookie"]["0"]; 
+      const { statusCode, _body } = await requester.get(
+        `/api/users/${nonExistentUserId}`
+      );
 
-          expect(cookieResultado).to.be.ok; 
+      expect(statusCode).to.equal(404);
+      expect(_body).to.have.property("message").that.equals("User not found.");
+    });
 
-          cookie = {
-              name: cookieResultado.split("=") ["0"],
-              value: cookieResultado.split("=") ["1"]
-          }
+    it("PUT /api/users/:uid should update an existing user", async () => {
+      const existingUserId = "679d8c0f1f4448a0fc24d5b9";
 
-          expect(cookie.name).to.be.ok.and.eql("coderCookie"); 
-          expect(cookie.value).to.be.ok; 
-      })
+      const updatedUserData = {
+        email: "updateduser@example.com",
+      };
 
-      it("Debe enviar la cookie que contiene el usuario", async () => {
+      const { statusCode, _body } = await requester
+        .put(`/api/users/${existingUserId}`)
+        .send(updatedUserData);
 
-          const {_body} = await requester.get("/api/sessions/current").set("Cookie",[`${cookie.name}=${cookie.value}`]); 
+      expect(statusCode).to.equal(200);
+      expect(_body).to.have.property("status").that.equals("success");
+      expect(_body).to.have.property("message").that.equals("User updated");
+    });
 
-          expect(_body.payload.email).to.be.eql("pepe@zapateriagarmendia.com");
-      })
-  })
+    it("PUT /api/users/:uid should return a 404 error if user is not found", async () => {
+      const nonExistentUserId = "000000000000000000000000";
 
-  describe("Testeamos la carga de imagenes", () => {
-      it("Creamos una mascota con imagen", async () => {
-          const pet = {
-              name: "Bingo", 
-              specie: "dog", 
-              birthDate: "2024-10-01"
-          }
+      const updateData = {
+        name: "Nonexistent User",
+        email: "nonexistent@example.com",
+      };
 
-          const resultado = await requester.post("/api/pets/withimage")
-              .field("name", pet.name)
-              .field("specie", pet.specie)
-              .field("birthDate", pet.birthDate)
-              .attach("image", "./test/ambar-perrito.jpg");
+      const { statusCode, _body } = await requester
+        .put(`/api/users/${nonExistentUserId}`)
+        .send(updateData);
 
-          expect(resultado.status).to.be.eql(200); 
-          expect(resultado._body.payload).to.have.property("_id"); 
-          expect(resultado._body.payload.image).to.be.ok; 
-      })
-  })
-})
+      expect(statusCode).to.equal(404);
+      expect(_body).to.have.property("message").that.equals("User not found.");
+    });
+
+    it("DELETE /api/users/:uid should delete an existing user", async () => {
+      const userToDelete = {
+        first_name: "Temporary User",
+        last_name: "To Delete",
+        email: "userToDelete@example.com",
+        password: "1234",
+      };
+
+      const createdUserResponse = await requester
+        .post("/api/users")
+        .send(userToDelete);
+
+      const userId = createdUserResponse._body.payload._id;
+
+      const { statusCode, _body } = await requester.delete(
+        `/api/users/${userId}`
+      );
+
+      expect(statusCode).to.equal(200);
+      expect(_body).to.have.property("status").that.equals("success");
+      expect(_body).to.have.property("message").that.equals("User deleted");
+    });
+
+    it("DELETE /api/users/:uid should return a 404 error if user is not found", async () => {
+      const nonExistentUserId = "000000000000000000000000";
+
+      const { statusCode, _body } = await requester.delete(
+        `/api/users/${nonExistentUserId}`
+      );
+
+      expect(statusCode).to.equal(404);
+      expect(_body).to.have.property("message").that.equals("User not found.");
+    });
+
+    it("DELETE /api/users/:uid should return a 404 error if user is not found", async () => {
+      const nonExistentUserId = "000000000000000000000000";
+
+      const { statusCode, _body } = await requester.delete(
+        `/api/users/${nonExistentUserId}`
+      );
+
+      expect(statusCode).to.equal(404);
+      expect(_body).to.have.property("message").that.equals("User not found.");
+    });
+  });
+
+  describe("Sessions API Testing", () => {
+    let cookie;
+
+    it("Should successfully register a user", async () => {
+      const mockUser = {
+        first_name: "John",
+        last_name: "Doe",
+        email: "johndoe@example.com",
+        password: "password123",
+      };
+
+      const { _body } = await requester
+        .post("/api/sessions/register")
+        .send(mockUser);
+
+      expect(_body.status).to.eql("success");
+      expect(_body.payload).to.be.ok;
+    });
+
+    it("Should log in successfully and get a session cookie", async () => {
+      const mockUser = {
+        email: "johndoe@example.com",
+        password: "password123",
+      };
+
+      const response = await requester
+        .post("/api/sessions/login")
+        .send(mockUser);
+
+      const cookieResult = response.headers["set-cookie"]?.[0];
+
+      expect(cookieResult).to.be.ok;
+
+      cookie = {
+        name: cookieResult.split("=")[0],
+        value: cookieResult.split("=")[1].split(";")[0], // Extract only the value
+      };
+
+      expect(cookie.name).to.eql("coderCookie");
+      expect(cookie.value).to.be.ok;
+    });
+
+    it("Should send the session cookie and retrieve the authenticated user's data", async () => {
+      const { _body } = await requester
+        .get("/api/sessions/current")
+        .set("Cookie", [`${cookie.name}=${cookie.value}`]);
+
+      expect(_body.status).to.eql("success");
+      expect(_body.payload.email).to.eql("johndoe@example.com");
+    });
+
+    it("Should log in using the unprotected route and retrieve an unprotected session cookie", async () => {
+      const mockUser = {
+        email: "johndoe@example.com",
+        password: "password123",
+      };
+
+      const response = await requester
+        .get("/api/sessions/unprotectedLogin")
+        .send(mockUser);
+
+      const cookieResult = response.headers["set-cookie"]?.[0];
+
+      expect(cookieResult).to.be.ok;
+
+      const unprotectedCookie = {
+        name: cookieResult.split("=")[0],
+        value: cookieResult.split("=")[1].split(";")[0],
+      };
+
+      expect(unprotectedCookie.name).to.eql("unprotectedCookie");
+      expect(unprotectedCookie.value).to.be.ok;
+    });
+
+    it("Should get the user session from the unprotected route", async () => {
+      const { _body } = await requester
+        .get("/api/sessions/unprotectedCurrent")
+        .set("Cookie", [`unprotectedCookie=${cookie.value}`]);
+
+      expect(_body.status).to.eql("success");
+      expect(_body.payload.email).to.eql("johndoe@example.com");
+    });
+  });
+});

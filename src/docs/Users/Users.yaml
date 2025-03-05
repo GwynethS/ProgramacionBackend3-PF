@@ -16,6 +16,22 @@ paths:
                   $ref: "#components/schemas/User"
         "500":
           description: Internal server error
+    post:
+      summary: Create a new user
+      description: Adds a new user to the system.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#components/requestBodies/bodyUser"
+      responses:
+        "200":
+          description: User successfully created
+        "500":
+          description: Internal server error
   /api/users/{uid}:
     get:
       summary: Get a single user by ID
@@ -55,7 +71,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#components/requestBodies/updateUser"
+              $ref: "#components/requestBodies/bodyUser"
       responses:
         "200":
           description: User successfully updated
@@ -107,7 +123,7 @@ components:
         pets:
           - _id: "6aaa84bad4dd297ffbe7bc1a"
   requestBodies:
-    updateUser:
+    bodyUser:
       type: object
       properties:
         first_name:

@@ -30,6 +30,17 @@ const getUser = async (req, res, next) => {
   }
 };
 
+const createUser = async (req, res, next) => {
+  try {
+    const newUser = req.body;
+    const result = await usersService.create(newUser);
+
+    res.send({ status: "success", payload: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateUser = async (req, res, next) => {
   try {
     const updateBody = req.body;
@@ -65,7 +76,7 @@ const deleteUser = async (req, res, next) => {
       });
     }
 
-    await usersService.deleteUser(userId);
+    await usersService.delete(userId);
     res.send({ status: "success", message: "User deleted" });
   } catch (error) {
     next(error);
@@ -73,8 +84,9 @@ const deleteUser = async (req, res, next) => {
 };
 
 export default {
-  deleteUser,
   getAllUsers,
   getUser,
+  createUser,
   updateUser,
+  deleteUser
 };
