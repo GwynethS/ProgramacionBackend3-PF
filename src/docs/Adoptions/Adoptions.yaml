@@ -19,7 +19,7 @@ paths:
 
   /api/adoptions/{aid}:
     get:
-      summary: Retrieve a specific adoption
+      summary: Get a specific adoption
       description: Returns details of a specific adoption by ID.
       tags:
         - Adoptions
